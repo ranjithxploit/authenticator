@@ -1,1 +1,1 @@
-My android authenticator app# authenticator
+# My android authenticator app
