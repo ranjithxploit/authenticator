@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { MdOutlineDarkMode } from "react-icons/md";
 import { MdOutlineContentCopy } from "react-icons/md";
+import { BsFillShieldLockFill } from "react-icons/bs";
+import { IoCheckmarkDoneCircleOutline } from "react-icons/io5";
+import { IoSearch } from "react-icons/io5";
+import { MdClear } from "react-icons/md";
 import './App.css'
 
 function App() {
@@ -11,6 +15,34 @@ function App() {
     }
     return false
   })
+
+  const [notification, setNotification] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const accounts = [
+    { id: 1, name: 'Work Email', service: 'Gmail', time: '4s ago', code: '428115' },
+    { id: 2, name: 'Personal Email', service: 'Gmail', time: '4s ago', code: '965204' },
+    { id: 3, name: 'Git Hosting', service: 'GitHub', time: '12s ago', code: '388701' },
+    { id: 4, name: 'Cloud Console', service: 'Azure', time: '7s ago', code: '704552' },
+  ]
+
+  const filteredAccounts = accounts.filter((account) =>
+    account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    account.service.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 3000)
+  }
+
+  const copyToClipboard = (code) => {
+    navigator.clipboard.writeText(code).then(() => {
+      showNotification('Code copied to clipboard!', 'success')
+    }).catch(() => {
+      showNotification('Failed to copy code', 'error')
+    })
+  }
 
   useEffect(() => {
     localStorage.setItem('theme-mode', isDark ? 'dark' : 'light')
@@ -23,10 +55,18 @@ function App() {
 
   return (
     <div className="app">
+      {notification && (
+        <div className={`notification notification-${notification.type}`}>
+          <div className="notification-content">
+            <IoCheckmarkDoneCircleOutline className="notification-icon" />
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
       <header className="app-header">
         <div className="app-brand">
           <div className="app-icon" aria-hidden="true">
-            🔐
+            <BsFillShieldLockFill />
           </div>
           <div>
             <p className="app-title">Authenticator</p>
@@ -49,87 +89,59 @@ function App() {
       </header>
 
       <main className="app-main">
-        <section className="hero">
-          <div>
-            <p className="hero-label">Active code</p>
-            <div className="code-card">
-              <div>
-                <p className="code-service">Work Email</p>
-                <p className="code-value" aria-label="One-time passcode">
-                  428 115
-                </p>
-              </div>
-              <div className="code-meta">
-                <div className="code-timer">
-                  <span>Expires in</span>
-                  <strong>19s</strong>
+        <div className="search-container">
+          <div className="search-input-wrapper">
+            <IoSearch className="search-icon" />
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search accounts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search accounts"
+            />
+            {searchQuery && (
+              <button
+                className="clear-search-btn"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                type="button"
+              >
+                <MdClear />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="section-header">
+          <h3>Your Accounts</h3>
+          <button className="text-button" type="button">
+            Manage
+          </button>
+        </div>
+        <div className="account-grid">
+          {filteredAccounts.length > 0 ? (
+            filteredAccounts.map((account) => (
+              <article className="account-card" key={account.id}>
+                <div>
+                  <p className="account-name">{account.name}</p>
+                  <p className="account-meta">{account.service} • Updated {account.time}</p>
                 </div>
-                <div className="code-progress" aria-hidden="true">
-                  <span style={{ width: '64%' }} />
-                </div>
-              </div>
-              <button className="primary-button small-icon-button" type="button">
-                <MdOutlineContentCopy />
-              </button>
+                <p className="account-code">{account.code.slice(0, 3)} {account.code.slice(3)}</p>
+                <button 
+                  className="primary-button small-icon-button" 
+                  type="button"
+                  onClick={() => copyToClipboard(account.code)}
+                >
+                  <MdOutlineContentCopy />
+                </button>
+              </article>
+            ))
+          ) : (
+            <div className="no-results">
+              <p>No accounts found matching "{searchQuery}"</p>
             </div>
-          </div>
-          <div className="hero-panel">
-            <h2>Stay signed in</h2>
-            <p>
-              Manage all your one-time codes in a clean, distraction-free
-              interface. Works offline once installed.
-            </p>
-            <div className="hero-actions">
-              <button className="primary-button" type="button">
-                Enable offline mode
-              </button>
-              <button className="ghost-button" type="button">
-                Learn more
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section className="account-list">
-          <div className="section-header">
-            <h3>Accounts</h3>
-            <button className="text-button" type="button">
-              Manage
-            </button>
-          </div>
-          <div className="account-grid">
-            <article className="account-card">
-              <div>
-                <p className="account-name">Personal Email</p>
-                <p className="account-meta">Gmail • Updated 4s ago</p>
-              </div>
-              <p className="account-code">965 204</p>
-              <button className="primary-button small-icon-button" type="button">
-                <MdOutlineContentCopy />
-              </button>
-            </article>
-            <article className="account-card">
-              <div>
-                <p className="account-name">Git Hosting</p>
-                <p className="account-meta">GitHub • Updated 12s ago</p>
-              </div>
-              <p className="account-code">388 701</p>
-              <button className="primary-button small-icon-button" type="button">
-                <MdOutlineContentCopy />
-              </button>
-            </article>
-            <article className="account-card">
-              <div>
-                <p className="account-name">Cloud Console</p>
-                <p className="account-meta">Azure • Updated 7s ago</p>
-              </div>
-              <p className="account-code">704 552</p>
-              <button className="primary-button small-icon-button" type="button">
-                <MdOutlineContentCopy />
-              </button>
-            </article>
-          </div>
-        </section>
+          )}
+        </div>
       </main>
     </div>
   )
