@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { MdOutlineDarkMode, MdOutlineContentCopy, MdClear, MdClose, MdAdd, MdLogout, MdDelete } from "react-icons/md"
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { MdOutlineDarkMode, MdOutlineContentCopy, MdClear, MdClose, MdOutlineAddCircle, MdLogout, MdDelete } from "react-icons/md"
 import { BsFillShieldLockFill } from "react-icons/bs"
 import { IoCheckmarkDoneCircleOutline, IoSearch } from "react-icons/io5"
 import * as OTPAuth from 'otpauth'
@@ -38,12 +38,19 @@ function App() {
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [newCode, setNewCode] = useState({ serviceName: '', accountName: '', secretKey: '' })
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanError, setScanError] = useState('')
+  const [scanStatus, setScanStatus] = useState('')
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const scanRafRef = useRef(null)
+  const scanActiveRef = useRef(false)
 
   const [totpCodes, setTotpCodes] = useState([])
   const [generatedCodes, setGeneratedCodes] = useState({})
   const [timeLeft, setTimeLeft] = useState(30)
 
-  const generateTOTP = (secret) => {
+  const generateTOTP = useCallback((secret) => {
     try {
       const totp = new OTPAuth.TOTP({
         issuer: 'Authenticator',
@@ -58,16 +65,43 @@ function App() {
       console.error('Error generating TOTP:', error)
       return '------'
     }
-  }
+  }, [])
 
   // Update all TOTP codes
-  const updateAllCodes = () => {
+  const updateAllCodes = useCallback(() => {
     const codes = {}
     totpCodes.forEach(code => {
       codes[code.id] = generateTOTP(code.secret_key)
     })
     setGeneratedCodes(codes)
-  }
+  }, [generateTOTP, totpCodes])
+
+  const stopScan = useCallback(() => {
+    scanActiveRef.current = false
+    if (scanRafRef.current) {
+      cancelAnimationFrame(scanRafRef.current)
+      scanRafRef.current = null
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setIsScanning(false)
+  }, [])
+
+  const fetchCodes = useCallback(async () => {
+    if (!user) return
+    try {
+      const response = await fetch(`${API_URL}/codes/${user.id}`)
+      const data = await response.json()
+      setTotpCodes(data)
+    } catch (error) {
+      console.error('Error fetching codes:', error)
+    }
+  }, [user])
 
   // Timer for TOTP refresh
   useEffect(() => {
@@ -81,19 +115,35 @@ function App() {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [totpCodes])
+  }, [updateAllCodes])
 
   // Update codes when totpCodes changes
   useEffect(() => {
-    updateAllCodes()
-  }, [totpCodes])
+    const frameId = requestAnimationFrame(() => updateAllCodes())
+    return () => cancelAnimationFrame(frameId)
+  }, [updateAllCodes])
+
+  // Stop camera when modal closes
+  useEffect(() => {
+    if (!showAddModal) {
+      const frameId = requestAnimationFrame(() => {
+        stopScan()
+        setScanError('')
+        setScanStatus('')
+      })
+      return () => cancelAnimationFrame(frameId)
+    }
+  }, [showAddModal, stopScan])
 
   // Fetch user's codes on login
   useEffect(() => {
     if (user) {
-      fetchCodes()
+      const timeoutId = setTimeout(() => {
+        fetchCodes()
+      }, 0)
+      return () => clearTimeout(timeoutId)
     }
-  }, [user])
+  }, [user, fetchCodes])
 
   // Theme effect
   useEffect(() => {
@@ -104,17 +154,6 @@ function App() {
       document.documentElement.classList.remove('dark')
     }
   }, [isDark])
-
-  const fetchCodes = async () => {
-    if (!user) return
-    try {
-      const response = await fetch(`${API_URL}/codes/${user.id}`)
-      const data = await response.json()
-      setTotpCodes(data)
-    } catch (error) {
-      console.error('Error fetching codes:', error)
-    }
-  }
 
   const showNotification = (message, type) => {
     setNotification({ message, type })
@@ -156,6 +195,7 @@ function App() {
       setLoginStep('otp')
       showNotification('Login code sent to your email!', 'success')
     } catch (error) {
+      console.error('Error sending code:', error)
       showNotification('Error sending code', 'error')
     }
     setLoading(false)
@@ -195,6 +235,7 @@ function App() {
       setLoginCode('')
       showNotification('Welcome back!', 'success')
     } catch (error) {
+      console.error('Error verifying code:', error)
       showNotification('Error verifying code', 'error')
     }
     setLoading(false)
@@ -243,6 +284,7 @@ function App() {
       setNewCode({ serviceName: '', accountName: '', secretKey: '' })
       showNotification('Code added!', 'success')
     } catch (error) {
+      console.error('Error adding code:', error)
       showNotification('Error adding code', 'error')
     }
     setLoading(false)
@@ -261,6 +303,7 @@ function App() {
         showNotification('Code deleted', 'success')
       }
     } catch (error) {
+      console.error('Error deleting code:', error)
       showNotification('Error deleting code', 'error')
     }
   }
@@ -271,6 +314,112 @@ function App() {
   )
 
   const progressPercent = (timeLeft / 30) * 100
+
+  const parseOtpAuthUri = (rawValue) => {
+    try {
+      if (!rawValue || !rawValue.startsWith('otpauth://')) {
+        return { secretKey: rawValue || '' }
+      }
+
+      const url = new URL(rawValue)
+      const label = decodeURIComponent(url.pathname.replace(/^\/+/, ''))
+      const issuerParam = url.searchParams.get('issuer') || ''
+      const secretKey = url.searchParams.get('secret') || ''
+
+      let serviceName = issuerParam
+      let accountName = ''
+
+      if (label.includes(':')) {
+        const [issuerFromLabel, accountFromLabel] = label.split(':')
+        if (!serviceName) {
+          serviceName = issuerFromLabel
+        }
+        accountName = accountFromLabel
+      } else {
+        accountName = label
+      }
+
+      return {
+        serviceName: serviceName || '',
+        accountName: accountName || '',
+        secretKey: secretKey || ''
+      }
+    } catch (error) {
+      console.error('Failed to parse otpauth URI:', error)
+      return { secretKey: rawValue || '' }
+    }
+  }
+
+  const startScan = async () => {
+    setScanError('')
+    setScanStatus('Starting camera...')
+
+    if (!('mediaDevices' in navigator) || !navigator.mediaDevices.getUserMedia) {
+      setScanError('Camera access is not supported in this browser.')
+      setScanStatus('')
+      return
+    }
+
+    if (!('BarcodeDetector' in window)) {
+      setScanError('QR scanning is not supported in this browser. Please enter the secret manually.')
+      setScanStatus('')
+      return
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      })
+
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        await videoRef.current.play()
+      }
+
+      setIsScanning(true)
+      scanActiveRef.current = true
+      setScanStatus('Point your camera at a QR code')
+
+      const detector = new BarcodeDetector({ formats: ['qr_code'] })
+
+      const scanLoop = async () => {
+        if (!videoRef.current || !scanActiveRef.current) {
+          return
+        }
+
+        try {
+          const barcodes = await detector.detect(videoRef.current)
+          if (barcodes.length > 0) {
+            const rawValue = barcodes[0].rawValue || ''
+            const parsed = parseOtpAuthUri(rawValue)
+            setNewCode((prev) => ({
+              ...prev,
+              serviceName: parsed.serviceName || prev.serviceName,
+              accountName: parsed.accountName || prev.accountName,
+              secretKey: parsed.secretKey || prev.secretKey
+            }))
+            showNotification('QR code scanned!', 'success')
+            stopScan()
+            return
+          }
+        } catch (error) {
+          console.error('QR detect error:', error)
+          setScanError('Unable to read QR code. Try again or enter the secret manually.')
+        }
+
+        scanRafRef.current = requestAnimationFrame(scanLoop)
+      }
+
+      scanRafRef.current = requestAnimationFrame(scanLoop)
+    } catch (error) {
+      console.error('Camera start error:', error)
+      setScanError('Camera permission was denied or unavailable.')
+      setScanStatus('')
+      stopScan()
+    }
+  }
 
   return (
     <div className="app">
@@ -311,7 +460,7 @@ function App() {
                 type="button"
                 onClick={() => setShowAddModal(true)}
               >
-                <MdAdd style={{ marginRight: '4px' }} /> Add
+                <MdOutlineAddCircle style={{ marginRight: '4px' }} /> Add
               </button>
               <button 
                 className="ghost-button" 
@@ -541,6 +690,32 @@ function App() {
             <div className="modal-form">
               <h2>Add New Code</h2>
               <p className="modal-subtitle">Enter the 2FA secret from your service</p>
+
+              <div className="scan-actions">
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => (isScanning ? stopScan() : startScan())}
+                >
+                  {isScanning ? 'Stop Scanning' : 'Scan QR with Camera'}
+                </button>
+                <span className="scan-hint">Works with GitHub, Google, and other 2FA QR codes.</span>
+              </div>
+
+              {scanError && <p className="scan-error">{scanError}</p>}
+              {scanStatus && <p className="scan-status">{scanStatus}</p>}
+
+              {isScanning && (
+                <div className="scanner-panel">
+                  <video
+                    ref={videoRef}
+                    className="scanner-video"
+                    muted
+                    playsInline
+                  />
+                  <div className="scanner-overlay" aria-hidden="true" />
+                </div>
+              )}
 
               <form onSubmit={handleAddCode}>
                 <div className="form-group">

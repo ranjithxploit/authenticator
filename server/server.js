@@ -31,12 +31,10 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-// Generate random 6-digit code
 const generateCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-// Send OTP for login
 app.post('/api/send-otp', async (req, res) => {
   try {
     const { email } = req.body
@@ -136,7 +134,6 @@ app.post('/api/send-otp', async (req, res) => {
   }
 })
 
-// Verify OTP and login/register user
 app.post('/api/verify-otp', async (req, res) => {
   try {
     const { email, code } = req.body
@@ -199,7 +196,6 @@ app.post('/api/verify-otp', async (req, res) => {
         .update({ last_login: new Date().toISOString() })
         .eq('id', user.id)
     }
-
     verificationCodes.delete(email)
 
     res.json({ 
