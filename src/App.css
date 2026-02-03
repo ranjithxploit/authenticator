@@ -8,6 +8,7 @@
   --app-primary: #2563eb;
   --app-primary-dark: #1d4ed8;
   --app-ring: rgba(37, 99, 235, 0.25);
+  --app-danger: #ef4444;
 }
 
 html.dark {
@@ -20,6 +21,7 @@ html.dark {
   --app-primary: #3b82f6;
   --app-primary-dark: #1d4ed8;
   --app-ring: rgba(59, 130, 246, 0.25);
+  --app-danger: #f87171;
 }
 
 .app {
@@ -114,6 +116,150 @@ html.dark .theme-toggle {
 
 .theme-toggle:hover {
   transform: scale(1.05);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: var(--app-surface);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--app-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--app-text);
+}
+
+.modal-form h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: var(--app-text);
+}
+
+.modal-subtitle {
+  margin: 0 0 2rem 0;
+  color: var(--app-muted);
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--app-text);
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-ring);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.code-input {
+  text-align: center;
+  font-size: 2rem;
+  letter-spacing: 0.5rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  padding: 1.5rem 1rem !important;
+}
+
+.code-hint {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--app-muted);
+}
+
+.modal-submit-btn {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.modal-back-btn {
+  width: 100%;
+  padding: 0.75rem !important;
+  text-align: center;
+}
+
+.modal-back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .app-brand {
@@ -521,5 +667,35 @@ html.dark .theme-toggle {
   .ghost-button {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    border-radius: 16px;
+    max-width: 90%;
+  }
+
+  .modal-form h2 {
+    font-size: 1.25rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group input {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.95rem;
+  }
+
+  .code-input {
+    font-size: 1.75rem;
+    padding: 1.25rem 0.75rem !important;
+  }
+
+  .modal-close-btn {
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.25rem;
   }
 }
