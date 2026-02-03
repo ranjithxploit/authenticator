@@ -301,6 +301,16 @@ html.dark .theme-toggle {
   padding: 0;
 }
 
+.small-icon-button {
+  padding: 0.5rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 1.2rem;
+}
+
 @media (max-width: 640px) {
   .app {
     padding: 1.5rem;

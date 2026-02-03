@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { MdOutlineDarkMode } from "react-icons/md";
+import { MdOutlineContentCopy } from "react-icons/md";
 import './App.css'
 
 function App() {
@@ -38,7 +40,7 @@ function App() {
             aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             type="button"
           >
-            {isDark ? '☀️' : '🌙'}
+            <MdOutlineDarkMode />
           </button>
           <button className="ghost-button" type="button">
             Add account
@@ -66,8 +68,8 @@ function App() {
                   <span style={{ width: '64%' }} />
                 </div>
               </div>
-              <button className="primary-button" type="button">
-                Copy code
+              <button className="primary-button small-icon-button" type="button">
+                <MdOutlineContentCopy />
               </button>
             </div>
           </div>
@@ -97,28 +99,34 @@ function App() {
           </div>
           <div className="account-grid">
             <article className="account-card">
-              <div className="account-icon">📧</div>
               <div>
                 <p className="account-name">Personal Email</p>
                 <p className="account-meta">Gmail • Updated 4s ago</p>
               </div>
               <p className="account-code">965 204</p>
+              <button className="primary-button small-icon-button" type="button">
+                <MdOutlineContentCopy />
+              </button>
             </article>
             <article className="account-card">
-              <div className="account-icon">🐙</div>
               <div>
                 <p className="account-name">Git Hosting</p>
                 <p className="account-meta">GitHub • Updated 12s ago</p>
               </div>
               <p className="account-code">388 701</p>
+              <button className="primary-button small-icon-button" type="button">
+                <MdOutlineContentCopy />
+              </button>
             </article>
             <article className="account-card">
-              <div className="account-icon">☁️</div>
               <div>
                 <p className="account-name">Cloud Console</p>
                 <p className="account-meta">Azure • Updated 7s ago</p>
               </div>
               <p className="account-code">704 552</p>
+              <button className="primary-button small-icon-button" type="button">
+                <MdOutlineContentCopy />
+              </button>
             </article>
           </div>
         </section>
