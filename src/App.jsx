@@ -97,6 +97,7 @@ function App() {
           </div>
           <div className="account-grid">
             <article className="account-card">
+              <div className="account-icon">📧</div>
               <div>
                 <p className="account-name">Personal Email</p>
                 <p className="account-meta">Gmail • Updated 4s ago</p>
@@ -104,6 +105,7 @@ function App() {
               <p className="account-code">965 204</p>
             </article>
             <article className="account-card">
+              <div className="account-icon">🐙</div>
               <div>
                 <p className="account-name">Git Hosting</p>
                 <p className="account-meta">GitHub • Updated 12s ago</p>
@@ -111,6 +113,7 @@ function App() {
               <p className="account-code">388 701</p>
             </article>
             <article className="account-card">
+              <div className="account-icon">☁️</div>
               <div>
                 <p className="account-name">Cloud Console</p>
                 <p className="account-meta">Azure • Updated 7s ago</p>
