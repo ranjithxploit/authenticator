@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import nodemailer from 'nodemailer'
+import sgMail from '@sendgrid/mail'
 import dotenv from 'dotenv'
 import { createClient } from '@supabase/supabase-js'
 
@@ -17,13 +17,7 @@ app.use(cors())
 app.use(express.json())
 
 const verificationCodes = new Map()
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-})
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 const generateCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -46,7 +40,7 @@ app.post('/api/send-otp', async (req, res) => {
 
     // Send email with OTP
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: 'noreply@authenticator.com',
       to: email,
       subject: '🔐 Authenticator - Login Code',
       html: `
@@ -116,7 +110,7 @@ app.post('/api/send-otp', async (req, res) => {
       `,
     }
 
-    await transporter.sendMail(mailOptions)
+    await sgMail.send(mailOptions)
 
     res.json({ 
       success: true, 
