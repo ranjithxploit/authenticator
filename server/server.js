@@ -190,7 +190,6 @@ app.post('/api/verify-otp', async (req, res) => {
       }
       user = newUser
     } else {
-      // Update last login
       await supabase
         .from('users')
         .update({ last_login: new Date().toISOString() })

@@ -30,7 +30,6 @@ function App() {
   const [notification, setNotification] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
-
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [loginStep, setLoginStep] = useState('email') // 'email' or 'otp'
   const [loginEmail, setLoginEmail] = useState('')
@@ -103,7 +102,6 @@ function App() {
     }
   }, [user])
 
-  // Timer for TOTP refresh
   useEffect(() => {
     const interval = setInterval(() => {
       const seconds = 30 - (Math.floor(Date.now() / 1000) % 30)
@@ -117,13 +115,11 @@ function App() {
     return () => clearInterval(interval)
   }, [updateAllCodes])
 
-  // Update codes when totpCodes changes
   useEffect(() => {
     const frameId = requestAnimationFrame(() => updateAllCodes())
     return () => cancelAnimationFrame(frameId)
   }, [updateAllCodes])
 
-  // Stop camera when modal closes
   useEffect(() => {
     if (!showAddModal) {
       const frameId = requestAnimationFrame(() => {
@@ -135,7 +131,6 @@ function App() {
     }
   }, [showAddModal, stopScan])
 
-  // Fetch user's codes on login
   useEffect(() => {
     if (user) {
       const timeoutId = setTimeout(() => {
@@ -145,7 +140,6 @@ function App() {
     }
   }, [user, fetchCodes])
 
-  // Theme effect
   useEffect(() => {
     localStorage.setItem('theme-mode', isDark ? 'dark' : 'light')
     if (isDark) {
@@ -168,7 +162,6 @@ function App() {
     })
   }
 
-  // Login handlers
   const handleSendOTP = async (e) => {
     e.preventDefault()
     if (!loginEmail.trim()) {
@@ -185,7 +178,6 @@ function App() {
       })
 
       const data = await response.json()
-
       if (!response.ok) {
         showNotification(data.error || 'Failed to send code', 'error')
         setLoading(false)
@@ -217,18 +209,14 @@ function App() {
       })
 
       const data = await response.json()
-
       if (!response.ok) {
         showNotification(data.error || 'Failed to verify', 'error')
         setLoading(false)
         return
       }
 
-      // Save user to state and localStorage
       setUser(data.user)
       localStorage.setItem('authenticator-user', JSON.stringify(data.user))
-      
-      // Reset modal
       setShowLoginModal(false)
       setLoginStep('email')
       setLoginEmail('')
@@ -249,7 +237,6 @@ function App() {
     showNotification('Logged out', 'success')
   }
 
-  // Add code handler
   const handleAddCode = async (e) => {
     e.preventDefault()
     if (!newCode.serviceName.trim() || !newCode.accountName.trim() || !newCode.secretKey.trim()) {
@@ -277,8 +264,6 @@ function App() {
         setLoading(false)
         return
       }
-
-      // Refresh codes
       await fetchCodes()
       setShowAddModal(false)
       setNewCode({ serviceName: '', accountName: '', secretKey: '' })
