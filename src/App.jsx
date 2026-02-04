@@ -5,7 +5,7 @@ import { IoCheckmarkDoneCircleOutline, IoSearch } from "react-icons/io5"
 import * as OTPAuth from 'otpauth'
 import './App.css'
 
-const API_URL = 'http://localhost:5000/api'
+const API_URL = 'https://authenticator-xofj.onrender.com/api'
 
 function App() {
   // Theme

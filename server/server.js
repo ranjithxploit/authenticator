@@ -8,21 +8,15 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
-
-// Initialize Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 )
 
-// Middleware
 app.use(cors())
 app.use(express.json())
 
-// Store verification codes (in-memory, for OTP verification)
 const verificationCodes = new Map()
-
-// Configure nodemailer
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
