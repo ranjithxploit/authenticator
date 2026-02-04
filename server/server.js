@@ -40,7 +40,7 @@ app.post('/api/send-otp', async (req, res) => {
 
     // Send email with OTP
     const mailOptions = {
-      from: 'noreply@authenticator.com',
+      from: process.env.EMAIL_USER,
       to: email,
       subject: '🔐 Authenticator - Login Code',
       html: `
