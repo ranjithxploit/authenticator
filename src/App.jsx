@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MdOutlineDarkMode, MdOutlineContentCopy, MdClear, MdClose, MdOutlineAddCircle, MdLogout, MdDelete } from "react-icons/md"
+import { MdOutlineDarkMode, MdOutlineContentCopy, MdClear, MdClose, MdLogout, MdDelete } from "react-icons/md"
 import { BsFillShieldLockFill } from "react-icons/bs"
 import { IoCheckmarkDoneCircleOutline, IoSearch } from "react-icons/io5"
+import { IoIosAddCircle } from "react-icons/io"
+import { RiSpam2Fill } from "react-icons/ri"
 import * as OTPAuth from 'otpauth'
 import './App.css'
 
@@ -360,7 +362,12 @@ function App() {
       streamRef.current = stream
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        await videoRef.current.play()
+        // Helps Safari/iOS start playback inline without user gesture
+        videoRef.current.setAttribute('playsinline', true)
+        videoRef.current.setAttribute('autoplay', true)
+        await videoRef.current.play().catch(() => {
+          setScanError('Camera preview failed to start. Try again or refresh the page.')
+        })
       }
 
       setIsScanning(true)
@@ -444,8 +451,9 @@ function App() {
                 className="ghost-button" 
                 type="button"
                 onClick={() => setShowAddModal(true)}
+                aria-label="Add new code"
               >
-                <MdOutlineAddCircle style={{ marginRight: '4px' }} /> Add
+                <IoIosAddCircle size={24} />
               </button>
               <button 
                 className="ghost-button" 
@@ -612,6 +620,11 @@ function App() {
                   >
                     {loading ? 'Sending...' : 'Send Login Code'}
                   </button>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '16px', color: '#ef4444', fontWeight: 'bold' }}>
+                    <RiSpam2Fill size={18} />
+                    <span>Please check your spam folder for OTP Codes</span>
+                  </div>
                 </form>
               </div>
             ) : (
@@ -697,6 +710,7 @@ function App() {
                     className="scanner-video"
                     muted
                     playsInline
+                    autoPlay
                   />
                   <div className="scanner-overlay" aria-hidden="true" />
                 </div>
