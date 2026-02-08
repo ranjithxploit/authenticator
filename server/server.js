@@ -42,67 +42,230 @@ app.post('/api/send-otp', async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: '🔐 Authenticator - Login Code',
+      subject: 'Authenticator - Secure Login Verification Code',
       html: `
         <!DOCTYPE html>
         <html>
           <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Authenticator Login Code</title>
             <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-              .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-              .header { text-align: center; margin-bottom: 30px; }
-              .logo { font-size: 48px; margin-bottom: 10px; }
-              h2 { color: #1f2937; margin: 0 0 8px 0; font-size: 24px; }
-              .subtitle { color: #6b7280; font-size: 14px; margin: 0; }
-              .otp-box { 
-                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-                border-radius: 12px;
-                padding: 32px;
+              * { box-sizing: border-box; }
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+                background: #f8fafc; 
+                margin: 0; 
+                padding: 20px; 
+                line-height: 1.6;
+              }
+              .container { 
+                max-width: 600px; 
+                margin: 0 auto; 
+                background: white; 
+                border-radius: 16px; 
+                padding: 40px; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+                border: 1px solid #e2e8f0;
+              }
+              .header { text-align: center; margin-bottom: 40px; }
+              .logo { font-size: 56px; margin-bottom: 16px; }
+              h1 { 
+                color: #1e293b; 
+                margin: 0 0 8px 0; 
+                font-size: 28px; 
+                font-weight: 700; 
+              }
+              .subtitle { 
+                color: #64748b; 
+                font-size: 16px; 
+                margin: 0 0 8px 0; 
+                font-weight: 400; 
+              }
+              .greeting { 
+                color: #475569; 
+                font-size: 15px; 
+                margin: 24px 0 32px 0; 
+                text-align: left; 
+              }
+              .otp-section { 
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                border-radius: 16px;
+                padding: 40px 32px;
                 text-align: center;
                 margin: 32px 0;
+                position: relative;
+                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
               }
               .otp-code {
                 color: white;
-                font-size: 42px;
-                font-weight: bold;
-                letter-spacing: 12px;
-                font-family: 'Courier New', monospace;
-                margin: 0;
+                font-size: 48px;
+                font-weight: 800;
+                letter-spacing: 16px;
+                font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+                margin: 0 0 16px 0;
+                user-select: all;
+                -webkit-user-select: all;
+                -moz-user-select: all;
+                -ms-user-select: all;
+                cursor: pointer;
+                padding: 16px;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.1);
+                border: 2px dashed rgba(255,255,255,0.3);
+                transition: all 0.3s ease;
+              }
+              .otp-code:hover {
+                background: rgba(255,255,255,0.15);
+                border-color: rgba(255,255,255,0.5);
+                transform: scale(1.02);
+              }
+              .copy-instruction {
+                color: rgba(255,255,255,0.9);
+                font-size: 14px;
+                margin: 12px 0 0 0;
+                font-weight: 500;
+              }
+              .copy-hint {
+                color: rgba(255,255,255,0.7);
+                font-size: 12px;
+                margin: 8px 0 0 0;
+                font-style: italic;
               }
               .otp-label {
                 color: rgba(255,255,255,0.8);
-                font-size: 12px;
-                margin-top: 12px;
+                font-size: 13px;
+                margin-top: 20px;
                 text-transform: uppercase;
-                letter-spacing: 1px;
+                letter-spacing: 2px;
+                font-weight: 600;
               }
-              .info { background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; font-size: 14px; color: #1e40af; }
-              .footer { color: #9ca3af; font-size: 12px; text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+              .info-box { 
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); 
+                border: 1px solid #93c5fd;
+                border-radius: 12px;
+                padding: 20px; 
+                margin: 32px 0; 
+                font-size: 15px; 
+                color: #1e40af;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+              }
+              .info-icon {
+                font-size: 20px;
+                flex-shrink: 0;
+              }
+              .security-note {
+                background: #fef3c7;
+                border: 1px solid #fbbf24;
+                border-radius: 12px;
+                padding: 20px;
+                margin: 24px 0;
+                color: #92400e;
+                font-size: 14px;
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+              }
+              .security-icon {
+                color: #f59e0b;
+                font-size: 18px;
+                flex-shrink: 0;
+                margin-top: 2px;
+              }
+              .company-info {
+                text-align: center;
+                padding: 32px 0 16px 0;
+                border-top: 1px solid #e2e8f0;
+                margin-top: 40px;
+              }
+              .company-name {
+                color: #1e293b;
+                font-size: 18px;
+                font-weight: 600;
+                margin: 0 0 8px 0;
+              }
+              .company-tagline {
+                color: #64748b;
+                font-size: 14px;
+                margin: 0;
+                font-style: italic;
+              }
+              .footer { 
+                color: #94a3b8; 
+                font-size: 12px; 
+                text-align: center; 
+                margin-top: 20px;
+                line-height: 1.5;
+              }
+              .plain-code {
+                background: #f1f5f9;
+                border: 2px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 16px;
+                margin: 16px 0;
+                text-align: center;
+                font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+                font-size: 24px;
+                font-weight: 700;
+                letter-spacing: 4px;
+                color: #1e293b;
+                user-select: all;
+                -webkit-user-select: all;
+                -moz-user-select: all;
+                -ms-user-select: all;
+                cursor: pointer;
+              }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
                 <div class="logo">🔐</div>
-                <h2>Login to Authenticator</h2>
-                <p class="subtitle">Enter this code to access your account</p>
+                <h1>Secure Login Verification</h1>
+                <p class="subtitle">Your authentication code is ready</p>
               </div>
 
-              <div class="otp-box">
-                <p class="otp-code">${code}</p>
-                <p class="otp-label">One-Time Password</p>
+              <div class="greeting">
+                Dear User,<br>
+                We received a login request for your Authenticator account. Please use the verification code below to complete your login process.
               </div>
 
-              <div class="info">
-                ⏱️ This code expires in <strong>10 minutes</strong>
+              <div class="otp-section">
+                <div class="otp-code" title="Click to select code for copying">${code}</div>
+                <p class="copy-instruction">📋 Click the code above to select it</p>
+                <p class="copy-hint">Then use Ctrl+C (Cmd+C on Mac) to copy</p>
+                <p class="otp-label">One-Time Verification Code</p>
               </div>
 
-              <p style="color: #6b7280; font-size: 14px; text-align: center;">
-                If you didn't request this code, you can safely ignore this email.
-              </p>
+              <div class="plain-code" title="Alternative copy option">
+                ${code}
+              </div>
+
+              <div class="info-box">
+                <span class="info-icon">⏱️</span>
+                <div>
+                  <strong>Time Sensitive:</strong> This verification code will expire in <strong>10 minutes</strong> for your security.
+                </div>
+              </div>
+
+              <div class="security-note">
+                <span class="security-icon">🛡️</span>
+                <div>
+                  <strong>Security Notice:</strong> If you did not request this login code, please ignore this email and consider changing your account password. Never share this code with anyone.
+                </div>
+              </div>
+
+              <div class="company-info">
+                <div class="company-name">🔐 Authenticator</div>
+                <p class="company-tagline">Your trusted partner for secure two-factor authentication</p>
+              </div>
 
               <div class="footer">
-                Authenticator - Secure 2FA codes at a glance
+                This email was sent to ${email}<br>
+                © 2026 Authenticator. All rights reserved.<br>
+                <em>Keeping your digital identity secure, one code at a time.</em>
               </div>
             </div>
           </body>
